@@ -10,9 +10,9 @@ import argparse
 import warnings
 
 assert (
-    "LlamaTokenizer" in transformers._import_structure["models.llama"]
+        "LLaMATokenizer" in transformers._import_structure["models.llama"]
 ), "LLaMA is now in HuggingFace's main branch.\nPlease reinstall it: pip uninstall transformers && pip install git+https://github.com/huggingface/transformers.git"
-from transformers import LlamaForCausalLM, LlamaTokenizer
+from transformers import LlamaForCausalLM, LLaMATokenizer
 from peft import (
     prepare_model_for_int8_training,
     LoraConfig,
@@ -46,13 +46,13 @@ CUTOFF_LEN = 256  # 256 accounts for about 96% of the data
 LORA_R = 8
 LORA_ALPHA = 16
 LORA_DROPOUT = 0.05
-VAL_SET_SIZE = args.test_size #2000
+VAL_SET_SIZE = args.test_size  # 2000
 TARGET_MODULES = [
     "q_proj",
     "v_proj",
 ]
-DATA_PATH = args.data_path #"/home/cciip/private/fanchenghao/dataset/instruction/merge.json"
-OUTPUT_DIR = args.output_path #"lora-Vicuna"
+DATA_PATH = args.data_path  # "/home/cciip/private/fanchenghao/dataset/instruction/merge.json"
+OUTPUT_DIR = args.output_path  # "lora-Vicuna"
 
 device_map = "auto"
 world_size = int(os.environ.get("WORLD_SIZE", 1))
@@ -66,7 +66,7 @@ model = LlamaForCausalLM.from_pretrained(
     load_in_8bit=True,
     device_map=device_map,
 )
-tokenizer = LlamaTokenizer.from_pretrained(
+tokenizer = LLaMATokenizer.from_pretrained(
     args.model_path, add_eos_token=True
 )
 
@@ -82,16 +82,16 @@ config = LoraConfig(
 )
 model = get_peft_model(model, config)
 tokenizer.pad_token_id = 0  # unk. we want this to be different from the eos token
-#tokenizer.padding_side = "left"  # Allow batched inference
+# tokenizer.padding_side = "left"  # Allow batched inference
 
 data = load_dataset("json", data_files=DATA_PATH)
 
 now_max_steps = max((len(data["train"]) - VAL_SET_SIZE) // BATCH_SIZE * EPOCHS, EPOCHS)
 if args.resume_from_checkpoint:
-# Check the available weights and load them
+    # Check the available weights and load them
     checkpoint_name = os.path.join(
         args.resume_from_checkpoint, "pytorch_model.bin"
-)  # Full checkpoint
+    )  # Full checkpoint
     if not os.path.exists(checkpoint_name):
         pytorch_bin_path = checkpoint_name
         checkpoint_name = os.path.join(
@@ -99,7 +99,8 @@ if args.resume_from_checkpoint:
         )  # only LoRA model - LoRA config above has to fit
         if os.path.exists(checkpoint_name):
             os.rename(checkpoint_name, pytorch_bin_path)
-            warnings.warn("The file name of the lora checkpoint'adapter_model.bin' is replaced with 'pytorch_model.bin'")
+            warnings.warn(
+                "The file name of the lora checkpoint'adapter_model.bin' is replaced with 'pytorch_model.bin'")
         else:
             args.resume_from_checkpoint = (
                 None  # So the trainer won't try loading its state
@@ -111,11 +112,12 @@ if args.resume_from_checkpoint:
         model = set_peft_model_state_dict(model, adapters_weights)
     else:
         print(f"Checkpoint {checkpoint_name} not found")
-    
+
     train_args_path = os.path.join(args.resume_from_checkpoint, "trainer_state.json")
-    
+
     if os.path.exists(train_args_path):
         import json
+
         base_train_args = json.load(open(train_args_path, 'r'))
         base_max_steps = base_train_args["max_steps"]
         resume_scale = base_max_steps / now_max_steps
@@ -128,8 +130,8 @@ if args.resume_from_checkpoint:
 else:
     MAX_STEPS = now_max_steps
 
-
 model.print_trainable_parameters()
+
 
 def generate_prompt(data_point):
     # sorry about the formatting disaster gotta move fast
@@ -197,14 +199,14 @@ def generate_and_tokenize_prompt(data_point):
         )
     )
     len_user_prompt_tokens = (
-        len(
-            tokenizer(
-                user_prompt,
-                truncation=True,
-                max_length=CUTOFF_LEN + 1,
-            )["input_ids"]
-        )
-        - 1
+            len(
+                tokenizer(
+                    user_prompt,
+                    truncation=True,
+                    max_length=CUTOFF_LEN + 1,
+                )["input_ids"]
+            )
+            - 1
     )  # no eos token
     full_tokens = tokenizer(
         user_prompt + data_point["output"],
@@ -215,7 +217,7 @@ def generate_and_tokenize_prompt(data_point):
     return {
         "input_ids": full_tokens,
         "labels": [-100] * len_user_prompt_tokens
-        + full_tokens[len_user_prompt_tokens:],
+                  + full_tokens[len_user_prompt_tokens:],
         "attention_mask": [1] * (len(full_tokens)),
     }
 

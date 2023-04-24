@@ -1,6 +1,6 @@
-BASE_MODEL="decapoda-research/llama-7b-hf"
-LORA_PATH="Chinese-Vicuna/Chinese-Vicuna-lora-7b-belle-and-guanaco" #"./lora-Vicuna/checkpoint-final"
-USE_LOCAL=0 # 1: use local model, 0: use huggingface model
+BASE_MODEL="../llama-7b-hf"
+LORA_PATH="lora-Vicuna/20230424" #"./lora-Vicuna/checkpoint-final"
+USE_LOCAL=1 # 1: use local model, 0: use huggingface model
 TYPE_WRITER=1 # whether output streamly
 if [[ USE_LOCAL -eq 1 ]]
 then
