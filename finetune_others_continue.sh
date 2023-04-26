@@ -1,11 +1,12 @@
-TOT_CUDA="2,3"
+TOT_CUDA="0,1"
 CUDAs=(${TOT_CUDA//,/ })
 CUDA_NUM=${#CUDAs[@]}
 PORT="12345"
 
-DATA_PATH="./sample/merge_sample.json" #"../dataset/instruction/guanaco_non_chat_mini_52K-utf8.json"
-OUTPUT_PATH="lora-Vicuna"
-MODEL_PATH="decapoda-research/llama-7b-hf"
+
+DATA_PATH="./sample/merge_sample.json" #"../dataset/instruction/guanaco_non_chat_mini_52K-utf8.json" #"./sample/merge_sample.json"
+OUTPUT_PATH="lora-Vicuna/20230424"
+MODEL_PATH="../llama-7b-hf"
 lora_checkpoint="./lora-Vicuna/checkpoint-11600"
 from_data_beginning=True # False
 TEST_SIZE=1
